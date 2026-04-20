@@ -28,15 +28,19 @@ var output = os.Stdout
 func Enumuser(email string, bearer string, verbose bool) error {
 
 	url := fmt.Sprintf(URL_TEAMS, email)
-	req, _ := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return fmt.Errorf("failed to build request for %s: %w", email, err)
+	}
 	req.Header.Add("Authorization", bearer)
 	req.Header.Add("x-ms-client-version", CLIENT_VERSION)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println("Error on response.\n[ERRO] -", err)
+		return fmt.Errorf("request failed for %s: %w", email, err)
 	}
+	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
 
@@ -155,7 +159,11 @@ func Parsefile(filenPath string, bearer string, verbose bool, threads int, outpu
 func getPresence(mri string, bearer string, verbose bool) (string, string) {
 
 	var json_data = []byte(`[{"mri":"` + mri + `"}]`)
-	req, _ := http.NewRequest("POST", URL_PRESENCE_TEAMS, bytes.NewBuffer(json_data))
+	req, err := http.NewRequest("POST", URL_PRESENCE_TEAMS, bytes.NewBuffer(json_data))
+	if err != nil {
+		log.Println("Error building presence request:", err)
+		return "error", "error"
+	}
 	req.Header.Add("Authorization", bearer)
 	req.Header.Add("x-ms-client-version", CLIENT_VERSION)
 	req.Header.Set("Content-Type", "application/json")
@@ -164,7 +172,9 @@ func getPresence(mri string, bearer string, verbose bool) (string, string) {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("Error on response.\n[ERRO] -", err)
+		return "error", "error"
 	}
+	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
 
