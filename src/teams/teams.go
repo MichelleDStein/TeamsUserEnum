@@ -10,7 +10,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 	"sync"
@@ -66,8 +65,8 @@ func Enumuser(email string, bearer string, verbose bool) error {
 	}
 
 	if resp.StatusCode == 200 {
-		if reflect.ValueOf(jsonInterface).Len() > 0 && usefulInformation[0].DisplayName != usefulInformation[0].GivenName {
-			if reflect.ValueOf(jsonInterface).Len() > 0 {
+		if len(usefulInformation) > 0 && usefulInformation[0].DisplayName != usefulInformation[0].GivenName {
+			if len(usefulInformation) > 0 {
 				presence, device := getPresence(usefulInformation[0].Mri, bearer, verbose)
 				color.Green("[+] " + email + " - " + usefulInformation[0].DisplayName + " - " + presence + " - " + device)
 				fmt.Fprintln(output, email)
